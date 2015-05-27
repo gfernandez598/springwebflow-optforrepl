@@ -107,7 +107,7 @@ example, can be set it:
 The implementation of `ReplicationOptimizedSessionBindingConversationManager` 
 use 
 [`org.springframework.webflow.conversation.impl.JdkConcurrentConversationLock`](http://docs.spring.io/autorepo/docs/webflow/2.4.x/api/org/springframework/webflow/conversation/impl/JdkConcurrentConversationLock.html) 
-class which is not public for previouse versions.
+class which is not public for previous versions.
 
 ## Credits
 
