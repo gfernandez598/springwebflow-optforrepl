@@ -1,0 +1,10 @@
+# Ignore build output (matches 'target' in any sub folder)
+target/
+
+# Eclipse IDE project's settings
+
+.project
+
+.classpath
+
+.settings/
