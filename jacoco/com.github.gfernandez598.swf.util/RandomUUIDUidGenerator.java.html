@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>RandomUUIDUidGenerator.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Spring Web Flow OptForRepl</a> &gt; <a href="index.source.html" class="el_package">com.github.gfernandez598.swf.util</a> &gt; <span class="el_source">RandomUUIDUidGenerator.java</span></div><h1>RandomUUIDUidGenerator.java</h1><pre class="source lang-java linenums">package com.github.gfernandez598.swf.util;
+
+/*
+ * #%L
+ * Spring Web Flow OptForRepl
+ * %%
+ * Copyright (C) 2015 gfernandez598
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
+import java.io.Serializable;
+import java.util.UUID;
+
+/**
+ * &lt;p&gt;
+ * Retrieve a type 4 (pseudo randomly generated) UUID (Universally Unique
+ * Identifier).
+ * &lt;/p&gt;
+ * &lt;p&gt;
+ * This is a string that looks like hex digits in several groups separated by
+ * dashes such as: BA8D6569-9208-4DBB-9357-A4500838101E&lt;br/&gt;
+ * It follows the template below where N digit will always be 8, 9, A or B and
+ * digit 4 specify the version 4 of UUID: &lt;br/&gt;
+ * xxxxxxxx-xxxx-4xxx-Nxxx-xxxxxxxxxxxx&lt;br/&gt;
+ * &lt;/p&gt;
+ * 
+ * @see java.util.UUID
+ * @author gfernandez598
+ * 
+ */
+<span class="fc" id="L43">public class RandomUUIDUidGenerator implements UidGenerator, Serializable {</span>
+
+	private static final long serialVersionUID = -8441202288054362878L;
+
+	@Override
+	public Serializable generateUid() {
+<span class="fc" id="L49">		return UUID.randomUUID();</span>
+	}
+
+	@Override
+	public Serializable parseUid(String encodedUid) {
+<span class="fc" id="L54">		return encodedUid;</span>
+	}
+
+	static public void main(String[] arg) {
+<span class="nc" id="L58">		System.out.println(UUID.randomUUID());</span>
+<span class="nc" id="L59">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.4.201502262128</span></div></body></html>

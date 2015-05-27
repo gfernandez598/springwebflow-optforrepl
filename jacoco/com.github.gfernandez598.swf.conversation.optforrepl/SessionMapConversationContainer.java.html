@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>SessionMapConversationContainer.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Spring Web Flow OptForRepl</a> &gt; <a href="index.source.html" class="el_package">com.github.gfernandez598.swf.conversation.optforrepl</a> &gt; <span class="el_source">SessionMapConversationContainer.java</span></div><h1>SessionMapConversationContainer.java</h1><pre class="source lang-java linenums">package com.github.gfernandez598.swf.conversation.optforrepl;
+
+/*
+ * #%L
+ * Spring Web Flow OptForRepl
+ * %%
+ * Copyright (C) 2015 gfernandez598
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
+
+import org.springframework.util.Assert;
+import org.springframework.webflow.context.ExternalContextHolder;
+import org.springframework.webflow.conversation.Conversation;
+import org.springframework.webflow.conversation.ConversationId;
+import org.springframework.webflow.conversation.ConversationParameters;
+import org.springframework.webflow.conversation.NoSuchConversationException;
+import org.springframework.webflow.core.collection.SharedAttributeMap;
+
+import java.io.Serializable;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+/**
+ * 
+ * @author gfernandez598
+ * 
+ */
+class SessionMapConversationContainer implements Serializable {
+
+	private static final long serialVersionUID = 1899010574372604375L;
+
+	/**
+	 * Maximum number of conversations in this container. -1 for unlimited.
+	 */
+	private int maxConversations;
+
+	/**
+	 * The lock timeout in seconds.
+	 */
+	private int lockTimeoutSeconds;
+
+	/**
+	 * The key of this conversation container in the session.
+	 */
+	private String sessionKey;
+
+	/**
+	 * The contained conversations. A list of
+	 * {@link org.springframework.webflow.conversation.impl.ContainedConversation}
+	 * objects.
+	 */
+	private ConcurrentLinkedQueue&lt;ConversationId&gt; conversations;
+
+	/**
+	 * Create a new conversation container.
+	 * 
+	 * @param maxConversations
+	 *            the maximum number of allowed concurrent conversations, -1 for
+	 *            unlimited
+	 * @param lockTimeout
+	 *            lock acquisition timeout of conversation in seconds
+	 * @param sessionKey
+	 *            the key of this conversation container in the session
+	 */
+	public SessionMapConversationContainer(int maxConversations,
+<span class="fc" id="L78">			int lockTimeout, String sessionKey) {</span>
+<span class="fc" id="L79">		Assert.hasText(sessionKey, &quot;A sessionKey must be supplied.&quot;);</span>
+<span class="fc" id="L80">		this.maxConversations = maxConversations;</span>
+<span class="fc" id="L81">		this.lockTimeoutSeconds = lockTimeout;</span>
+<span class="fc" id="L82">		this.sessionKey = sessionKey;</span>
+<span class="fc" id="L83">		this.conversations = new ConcurrentLinkedQueue&lt;ConversationId&gt;();</span>
+<span class="fc" id="L84">	}</span>
+
+	/**
+	 * 
+	 * @return the lock timeout in seconds.
+	 */
+	int getLockTimeoutSeconds() {
+<span class="fc" id="L91">		return lockTimeoutSeconds;</span>
+	}
+
+	/**
+	 * Returns the key of this conversation container in the session. For
+	 * package level use only.
+	 */
+	String getSessionKey() {
+<span class="fc" id="L99">		return sessionKey;</span>
+	}
+
+	/**
+	 * Returns the current size of the conversation container: the number of
+	 * conversations contained within it.
+	 */
+	public int size() {
+<span class="nc" id="L107">		return conversations.size();</span>
+	}
+
+	/**
+	 * Create a new conversation based on given parameters and add it to the
+	 * container.
+	 * 
+	 * @param id
+	 *            the unique id of the conversation
+	 * @param parameters
+	 *            descriptive parameters
+	 * @return the created conversation
+	 */
+	public synchronized Conversation createAndAddConversation(
+			ConversationId id, ConversationParameters parameters) {
+		// add the conversation to the session map also
+		ContainedConversation conversation;
+<span class="fc" id="L124">		final SharedAttributeMap sessionMap = ExternalContextHolder</span>
+				.getExternalContext().getSessionMap();
+<span class="fc" id="L126">		synchronized (sessionMap.getMutex()) {</span>
+			// add the new conversation to the queue
+<span class="fc" id="L128">			conversation = (ContainedConversation) sessionMap</span>
+					.get(getConversationKey(id));
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">			if (conversation == null) {</span>
+<span class="fc" id="L131">				conversations.add(id);</span>
+<span class="fc" id="L132">				conversation = new ContainedConversation(this, id);</span>
+<span class="fc" id="L133">				conversation.putAttribute(&quot;name&quot;, parameters.getName());</span>
+<span class="fc" id="L134">				conversation.putAttribute(&quot;caption&quot;, parameters.getCaption());</span>
+<span class="fc" id="L135">				conversation.putAttribute(&quot;description&quot;,</span>
+						parameters.getDescription());
+<span class="fc" id="L137">				sessionMap.put(getConversationKey(id), conversation);</span>
+			}
+<span class="pc" id="L139">		}</span>
+
+<span class="fc bfc" id="L141" title="All 2 branches covered.">		if (maxExceeded()) {</span>
+			// end oldest conversation by getting the first one out of the FIFO
+			// queue
+<span class="fc" id="L144">			final ConversationId oldestId = conversations.poll();</span>
+<span class="fc" id="L145">			final Conversation conver = getConversation(oldestId);</span>
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">			if (conver != null) {</span>
+<span class="fc" id="L147">				conver.end();</span>
+<span class="fc" id="L148">				removeConversation(oldestId);</span>
+			}
+		}
+<span class="fc" id="L151">		return conversation;</span>
+	}
+
+	/**
+	 * Return the identified conversation.
+	 * 
+	 * @param id
+	 *            the id to lookup
+	 * @return the conversation
+	 * @throws org.springframework.webflow.conversation.NoSuchConversationException
+	 *             if the conversation cannot be found
+	 */
+	public synchronized Conversation getConversation(ConversationId id)
+			throws NoSuchConversationException {
+<span class="fc" id="L165">		SharedAttributeMap sessionMap = ExternalContextHolder</span>
+				.getExternalContext().getSessionMap();
+<span class="fc" id="L167">		synchronized (sessionMap.getMutex()) {</span>
+<span class="fc" id="L168">			ContainedConversation conversation = (ContainedConversation) sessionMap</span>
+					.get(getConversationKey(id));
+<span class="fc bfc" id="L170" title="All 2 branches covered.">			if (conversation != null) {</span>
+<span class="fc" id="L171">				return conversation;</span>
+			}
+<span class="pc" id="L173">		}</span>
+
+<span class="fc" id="L175">		throw new NoSuchConversationException(id);</span>
+	}
+
+	/**
+	 * Save the conversation back to the session. We need to do this for
+	 * replication
+	 * 
+	 * @param id
+	 */
+	public synchronized void saveConversation(ConversationId id) {
+<span class="fc" id="L185">		final SharedAttributeMap sessionMap = ExternalContextHolder</span>
+				.getExternalContext().getSessionMap();
+		// remove from the list of conversations
+<span class="fc" id="L188">		synchronized (sessionMap.getMutex()) {</span>
+<span class="fc" id="L189">			final ContainedConversation conversation = (ContainedConversation) sessionMap</span>
+					.get(getConversationKey(id));
+<span class="pc bpc" id="L191" title="1 of 2 branches missed.">			if (conversation != null) {</span>
+<span class="nc" id="L192">				sessionMap.put(getConversationKey(id), conversation);</span>
+			}
+<span class="pc" id="L194">		}</span>
+<span class="fc" id="L195">	}</span>
+
+	/**
+	 * Remove identified conversation from this container.
+	 */
+	public synchronized void removeConversation(ConversationId id) {
+<span class="fc" id="L201">		SharedAttributeMap sessionMap = ExternalContextHolder</span>
+				.getExternalContext().getSessionMap();
+		// remove from the list of conversations
+<span class="fc" id="L204">		synchronized (sessionMap.getMutex()) {</span>
+<span class="fc" id="L205">			conversations.remove(id);</span>
+<span class="fc" id="L206">			sessionMap.remove(getConversationKey(id));</span>
+<span class="pc" id="L207">		}</span>
+<span class="fc" id="L208">	}</span>
+
+	/**
+	 * Has the maximum number of allowed concurrent conversations in the session
+	 * been exceeded?
+	 */
+	protected boolean maxExceeded() {
+<span class="pc bpc" id="L215" title="1 of 4 branches missed.">		return maxConversations &gt; 0 &amp;&amp; conversations.size() &gt; maxConversations;</span>
+	}
+
+	/**
+	 * Get the conversaion session key. Package use only.
+	 * 
+	 * @param id
+	 * @return the key
+	 */
+	String getConversationKey(ConversationId id) {
+<span class="fc" id="L225">		Assert.notNull(id, &quot;conversationId is required.&quot;);</span>
+<span class="fc" id="L226">		return getSessionKey() + &quot;.conversation.&quot; + id;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.4.201502262128</span></div></body></html>

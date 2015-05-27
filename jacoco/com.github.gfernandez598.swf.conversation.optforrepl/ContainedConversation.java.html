@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>ContainedConversation.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Spring Web Flow OptForRepl</a> &gt; <a href="index.source.html" class="el_package">com.github.gfernandez598.swf.conversation.optforrepl</a> &gt; <span class="el_source">ContainedConversation.java</span></div><h1>ContainedConversation.java</h1><pre class="source lang-java linenums">package com.github.gfernandez598.swf.conversation.optforrepl;
+
+/*
+ * #%L
+ * Spring Web Flow OptForRepl
+ * %%
+ * Copyright (C) 2015 gfernandez598
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.webflow.context.ExternalContextHolder;
+import org.springframework.webflow.conversation.Conversation;
+import org.springframework.webflow.conversation.ConversationId;
+import org.springframework.webflow.conversation.impl.ConversationLock;
+import org.springframework.webflow.core.collection.SharedAttributeMap;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * &lt;p&gt;
+ * Base on workaround attached to issue SWF-1030.
+ * &lt;/p&gt;
+ * 
+ * @see &lt;a
+ *      href=&quot;https://jira.spring.io/browse/SWF-1030&quot;&gt;https://jira.spring.io/browse/SWF-1030&lt;/a&gt;
+ * @author gfernandez598
+ * 
+ */
+class ContainedConversation implements Conversation, Serializable {
+
+	private static final long serialVersionUID = 2004406369147937290L;
+
+<span class="fc" id="L53">	private static final Log logger = LogFactory</span>
+			.getLog(ContainedConversation.class);
+
+	private SessionMapConversationContainer container;
+
+	private ConversationId id;
+
+	private transient ConversationLock lock;
+
+	private Map attributes;
+
+	/**
+	 * Create a new contained conversation.
+	 * 
+	 * @param container
+	 *            the container containing the conversation
+	 * @param id
+	 *            the unique id assigned to the conversation
+	 */
+	public ContainedConversation(SessionMapConversationContainer container,
+<span class="fc" id="L73">			ConversationId id) {</span>
+<span class="fc" id="L74">		this.container = container;</span>
+<span class="fc" id="L75">		this.id = id;</span>
+<span class="fc" id="L76">		this.lock = ConversationLockFactory.createLock(container</span>
+				.getLockTimeoutSeconds());
+<span class="fc" id="L78">		this.attributes = new HashMap();</span>
+<span class="fc" id="L79">	}</span>
+
+	public ConversationId getId() {
+<span class="fc" id="L82">		return id;</span>
+	}
+
+	public void lock() {
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">		if (logger.isDebugEnabled()) {</span>
+<span class="nc" id="L87">			logger.debug(&quot;Locking conversation &quot; + id);</span>
+		}
+<span class="fc" id="L89">		lock.lock();</span>
+<span class="fc" id="L90">	}</span>
+
+	public Object getAttribute(Object name) {
+<span class="fc" id="L93">		return attributes.get(name);</span>
+	}
+
+	public void putAttribute(Object name, Object value) {
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">		if (logger.isDebugEnabled()) {</span>
+<span class="nc" id="L98">			logger.debug(&quot;Putting conversation attribute '&quot; + name</span>
+					+ &quot;' with value &quot; + value);
+		}
+<span class="fc" id="L101">		attributes.put(name, value);</span>
+<span class="fc" id="L102">	}</span>
+
+	public void removeAttribute(Object name) {
+<span class="nc bnc" id="L105" title="All 2 branches missed.">		if (logger.isDebugEnabled()) {</span>
+<span class="nc" id="L106">			logger.debug(&quot;Removing conversation attribute '&quot; + name + &quot;'&quot;);</span>
+		}
+<span class="nc" id="L108">		attributes.remove(name);</span>
+<span class="nc" id="L109">	}</span>
+
+	public void end() {
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">		if (logger.isDebugEnabled()) {</span>
+<span class="nc" id="L113">			logger.debug(&quot;Ending conversation &quot; + id);</span>
+		}
+<span class="fc" id="L115">		container.removeConversation(getId());</span>
+<span class="fc" id="L116">	}</span>
+
+	public void unlock() {
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">		if (logger.isDebugEnabled()) {</span>
+<span class="nc" id="L120">			logger.debug(&quot;Unlocking conversation &quot; + id);</span>
+		}
+<span class="fc" id="L122">		lock.unlock();</span>
+
+		// re-bind the conversation container in the session
+		// this is required to make session replication work correctly in
+		// a clustered environment
+		// we do this after releasing the lock since we're no longer
+		// manipulating the contents of the conversation
+<span class="fc" id="L129">		SharedAttributeMap sessionMap = ExternalContextHolder</span>
+				.getExternalContext().getSessionMap();
+<span class="fc" id="L131">		synchronized (sessionMap.getMutex()) {</span>
+<span class="fc" id="L132">			sessionMap.put(container.getSessionKey(), container);</span>
+<span class="fc" id="L133">			container.saveConversation(id);</span>
+<span class="pc" id="L134">		}</span>
+<span class="fc" id="L135">	}</span>
+
+	public String toString() {
+<span class="nc" id="L138">		return getId().toString();</span>
+	}
+
+	/**
+	 * ID based equality
+	 * 
+	 * @param obj
+	 * @return true if the ids are equal
+	 */
+	public boolean equals(Object obj) {
+<span class="nc bnc" id="L148" title="All 2 branches missed.">		if (!(obj instanceof ContainedConversation)) {</span>
+<span class="nc" id="L149">			return false;</span>
+		}
+<span class="nc" id="L151">		return id.equals(((ContainedConversation) obj).id);</span>
+	}
+
+	public int hashCode() {
+<span class="nc" id="L155">		return id.hashCode();</span>
+	}
+
+	/**
+	 * Serialization to handle the transient object(s)
+	 * 
+	 * @param out
+	 *            the output stream
+	 * @throws IOException
+	 */
+	private void writeObject(ObjectOutputStream out) throws IOException {
+<span class="fc" id="L166">		out.defaultWriteObject();</span>
+<span class="fc" id="L167">	}</span>
+
+	/**
+	 * Read the input stream
+	 * 
+	 * @param in
+	 *            the input stream
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
+	private void readObject(ObjectInputStream in) throws IOException,
+			ClassNotFoundException {
+<span class="fc" id="L179">		in.defaultReadObject();</span>
+<span class="fc" id="L180">		lock = ConversationLockFactory.createLock(container</span>
+				.getLockTimeoutSeconds());
+<span class="fc" id="L182">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.4.201502262128</span></div></body></html>

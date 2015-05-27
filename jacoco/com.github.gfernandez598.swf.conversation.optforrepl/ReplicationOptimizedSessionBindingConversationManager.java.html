@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>ReplicationOptimizedSessionBindingConversationManager.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Spring Web Flow OptForRepl</a> &gt; <a href="index.source.html" class="el_package">com.github.gfernandez598.swf.conversation.optforrepl</a> &gt; <span class="el_source">ReplicationOptimizedSessionBindingConversationManager.java</span></div><h1>ReplicationOptimizedSessionBindingConversationManager.java</h1><pre class="source lang-java linenums">package com.github.gfernandez598.swf.conversation.optforrepl;
+
+/*
+ * #%L
+ * Spring Web Flow OptForRepl
+ * %%
+ * Copyright (C) 2015 gfernandez598
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.webflow.context.ExternalContextHolder;
+import org.springframework.webflow.conversation.Conversation;
+import org.springframework.webflow.conversation.ConversationException;
+import org.springframework.webflow.conversation.ConversationId;
+import org.springframework.webflow.conversation.ConversationManager;
+import org.springframework.webflow.conversation.ConversationParameters;
+import org.springframework.webflow.conversation.impl.BadlyFormattedConversationIdException;
+import org.springframework.webflow.conversation.impl.SimpleConversationId;
+import org.springframework.webflow.core.collection.SharedAttributeMap;
+
+import com.github.gfernandez598.swf.util.RandomUUIDUidGenerator;
+import com.github.gfernandez598.swf.util.UidGenerator;
+
+/**
+ * &lt;p&gt;
+ * Base on workaround attached to issue SWF-1030.
+ * &lt;/p&gt;
+ * 
+ * @see &lt;a
+ *      href=&quot;https://jira.spring.io/browse/SWF-1030&quot;&gt;https://jira.spring.io/browse/SWF-1030&lt;/a&gt;
+ * 
+ * @author gfernandez598
+ * 
+ */
+<span class="fc" id="L49">public class ReplicationOptimizedSessionBindingConversationManager implements</span>
+		ConversationManager {
+<span class="fc" id="L51">	private static final Log logger = LogFactory</span>
+			.getLog(ReplicationOptimizedSessionBindingConversationManager.class);
+
+	/**
+	 * The name of the session attribute that will hold the conversation
+	 * container used by this conversation manager.
+	 * &lt;p/&gt;
+	 * To support multiple independent conversation containers in the same web
+	 * application, for example, for use with multiple flow executors each
+	 * configured with their own session-binding conversation manager, set this
+	 * field's value to something unique.
+	 * 
+	 * @see #setSessionKey(String)
+	 */
+<span class="fc" id="L65">	private String sessionKey = &quot;webflow.conversationContainer&quot;;</span>
+
+	/**
+	 * The conversation uid generation strategy to use.
+	 */
+<span class="fc" id="L70">	private UidGenerator conversationIdGenerator = new RandomUUIDUidGenerator();</span>
+
+	/**
+	 * The maximum number of active conversations allowed in a session. The
+	 * default is 5. This is high enough for most practical situations and low
+	 * enough to avoid excessive resource usage or easy denial of service
+	 * attacks.
+	 */
+<span class="fc" id="L78">	private int maxConversations = 5;</span>
+
+	/**
+	 * The lock timeout in seconds.
+	 */
+<span class="fc" id="L83">	private int lockTimeoutSeconds = 30;</span>
+
+	/**
+	 * Returns the used generator for conversation ids. Defaults to
+	 * {@link RandomUUIDUidGenerator}.
+	 */
+	public UidGenerator getConversationIdGenerator() {
+<span class="nc" id="L90">		return conversationIdGenerator;</span>
+	}
+
+	/**
+	 * Sets the configured generator for conversation ids.
+	 */
+	public void setConversationIdGenerator(UidGenerator uidGenerator) {
+<span class="nc" id="L97">		this.conversationIdGenerator = uidGenerator;</span>
+<span class="nc" id="L98">	}</span>
+
+	/**
+	 * Returns the time period that can elapse before a timeout occurs on an
+	 * attempt to acquire a conversation lock. The default is 30 seconds.
+	 */
+	public int getLockTimeoutSeconds() {
+<span class="nc" id="L105">		return lockTimeoutSeconds;</span>
+	}
+
+	/**
+	 * Sets the time period that can elapse before a timeout occurs on an
+	 * attempt to acquire a conversation lock. The default is 30 seconds.
+	 * 
+	 * @param lockTimeoutSeconds
+	 *            the timeout period in seconds
+	 */
+	public void setLockTimeoutSeconds(int lockTimeoutSeconds) {
+<span class="nc" id="L116">		this.lockTimeoutSeconds = lockTimeoutSeconds;</span>
+<span class="nc" id="L117">	}</span>
+
+	/**
+	 * Returns the maximum number of allowed concurrent conversations. The
+	 * default is 5.
+	 */
+	public int getMaxConversations() {
+<span class="nc" id="L124">		return maxConversations;</span>
+	}
+
+	/**
+	 * Set the maximum number of allowed concurrent conversations. Set to -1 for
+	 * no limit. The default is 5.
+	 */
+	public void setMaxConversations(int maxConversations) {
+<span class="fc" id="L132">		this.maxConversations = maxConversations;</span>
+<span class="fc" id="L133">	}</span>
+
+	/**
+	 * Returns the key this conversation manager uses to store conversation data
+	 * in the session.
+	 * 
+	 * @return the session key
+	 */
+	public String getSessionKey() {
+<span class="nc" id="L142">		return sessionKey;</span>
+	}
+
+	/**
+	 * Sets the key this conversation manager uses to store conversation data in
+	 * the session. If multiple session binding conversation managers are used
+	 * in the same web application to back independent flow executors, this
+	 * value should be unique among them.
+	 * 
+	 * @param sessionKey
+	 *            the session key
+	 */
+	public void setSessionKey(String sessionKey) {
+<span class="fc" id="L155">		this.sessionKey = sessionKey;</span>
+<span class="fc" id="L156">	}</span>
+
+	public Conversation beginConversation(
+			ConversationParameters conversationParameters)
+			throws ConversationException {
+<span class="fc" id="L161">		ConversationId conversationId = new SimpleConversationId(</span>
+				conversationIdGenerator.generateUid());
+<span class="pc bpc" id="L163" title="1 of 2 branches missed.">		if (logger.isDebugEnabled()) {</span>
+<span class="nc" id="L164">			logger.debug(&quot;Beginning conversation &quot; + conversationParameters</span>
+					+ &quot;; unique conversation id = &quot; + conversationId);
+		}
+<span class="fc" id="L167">		return getConversationContainer().createAndAddConversation(</span>
+				conversationId, conversationParameters);
+	}
+
+	public Conversation getConversation(ConversationId id)
+			throws ConversationException {
+<span class="pc bpc" id="L173" title="1 of 2 branches missed.">		if (logger.isDebugEnabled()) {</span>
+<span class="nc" id="L174">			logger.debug(&quot;Getting conversation &quot; + id);</span>
+		}
+<span class="fc" id="L176">		return getConversationContainer().getConversation(id);</span>
+	}
+
+	public ConversationId parseConversationId(String encodedId)
+			throws ConversationException {
+		try {
+<span class="fc" id="L182">			return new SimpleConversationId(</span>
+					conversationIdGenerator.parseUid(encodedId));
+<span class="nc" id="L184">		} catch (NumberFormatException e) {</span>
+<span class="nc" id="L185">			throw new BadlyFormattedConversationIdException(encodedId, e);</span>
+		}
+	}
+
+	// internal helpers
+
+	/**
+	 * Obtain the conversation container from the session. Create a new empty
+	 * container and add it to the session if no existing container can be
+	 * found.
+	 */
+	private SessionMapConversationContainer getConversationContainer() {
+<span class="fc" id="L197">		SharedAttributeMap sessionMap = ExternalContextHolder</span>
+				.getExternalContext().getSessionMap();
+		int lala;
+		
+<span class="fc" id="L201">		synchronized (sessionMap.getMutex()) {</span>
+<span class="fc" id="L202">			SessionMapConversationContainer container = (SessionMapConversationContainer) sessionMap</span>
+					.get(sessionKey);
+<span class="fc bfc" id="L204" title="All 2 branches covered.">			if (container == null) {</span>
+<span class="fc" id="L205">				container = new SessionMapConversationContainer(</span>
+						maxConversations, lockTimeoutSeconds, sessionKey);
+<span class="fc" id="L207">				sessionMap.put(sessionKey, container);</span>
+			}
+<span class="fc" id="L209">			return container;</span>
+<span class="nc" id="L210">		}</span>
+		
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.4.201502262128</span></div></body></html>
