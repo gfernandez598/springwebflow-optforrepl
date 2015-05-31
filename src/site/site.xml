@@ -22,8 +22,15 @@
 		<artifactId>maven-fluido-skin</artifactId>
 		<version>1.4</version>
 	</skin>
+	<version position="right" />
 	<body>
+		<menu name="Overview">
+			<item name="Introduction" href="index.html" />
+			<item name="Usage" href="usage.html" />
+		</menu>
 		<menu name="Maven documentation" ref="reports" inherit="bottom" />
-		<menu name="Sitemap" ref="sitemap.html" inherit="bottom" />
+		<menu name="ASF" inherit="bottom">
+			<item name="Sitemap" href="sitemap.html" />
+		</menu>
 	</body>
 </project>

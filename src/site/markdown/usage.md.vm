@@ -1,0 +1,42 @@
+Usage
+-----
+
+Add the following snippet to your _pom_ file:
+
+```xml
+<dependency>
+  <groupId>com.github.gfernandez598</groupId>
+  <artifactId>springwebflow-optforrepl</artifactId>
+  <version>${project.version}</version>
+</dependency>
+```
+
+Basic configuration
+-------------------
+
+Configure SWF, define custom conversation manager and set it to the Flow 
+Execution Repository.
+
+```xml
+<bean id="replicationConversationManager" class="com.github.gfernandez598.swf.conversation.optforrepl.ReplicationOptimizedSessionBindingConversationManager" />
+
+<flow-executor id="flowExecutor">
+  <flow-execution-repository conversation-manager="replicationConversationManager" />
+</flow-executor>
+```
+
+Extended
+--------
+
+The solution provides conversation Id generators `RandomUUIDUidGenerator` 
+(default) and `SequenceUidGenerator`, but can choose any other. Custom 
+generators must implements the `UidGenerator` interface. Continuing the 
+example, can be set it:
+
+```xml
+<bean id="prettyConversationIdGenerator" class="com.github.gfernandez598.swf.util.SequenceUidGenerator" />
+
+<bean id="replicationConversationManager" class="com.github.gfernandez598.swf.conversation.optforrepl.ReplicationOptimizedSessionBindingConversationManager">
+  <property name="conversationIdGenerator" ref="prettyConversationIdGenerator" />
+</bean>
+```

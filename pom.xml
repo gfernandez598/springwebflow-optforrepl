@@ -9,7 +9,7 @@
 	<name>Spring Web Flow OptForRepl</name>
 	<inceptionYear>2015</inceptionYear>
 	<description>A set of classes aiming to improve Spring Web Flow's behavior for Optimized Session Replication</description>
-	<url>http://github.com/gfernandez598/springwebflow-optforrepl</url>
+	<url>http://gfernandez598.github.io/springwebflow-optforrepl/</url>
 
 	<properties>
 		<!-- Encodings -->
@@ -35,6 +35,12 @@
 		<version.nexus-staging-maven-plugin>1.6.5</version.nexus-staging-maven-plugin>
 		<version.maven-project-info-reports-plugin>2.8</version.maven-project-info-reports-plugin>
 		<version.maven-site-plugin>3.4</version.maven-site-plugin>
+		<version.site-maven-plugin>0.11</version.site-maven-plugin>
+		<version.downloads-maven-plugin>0.6</version.downloads-maven-plugin>
+		<version.maven-gpg-plugin>1.6</version.maven-gpg-plugin>
+		<version.maven-javadoc-plugin>2.10.3</version.maven-javadoc-plugin>
+		<version.maven-source-plugin>2.4</version.maven-source-plugin>
+		<version.maven-jar-plugin>2.6</version.maven-jar-plugin>
 	</properties>
 
 	<organization>
@@ -71,13 +77,11 @@
 
 	<distributionManagement>
 		<snapshotRepository>
-			<!-- <id>ossrh</id> -->
 			<id>sonatype-nexus-snapshots</id>
 			<name>Nexus Snapshot Repository</name>
 			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
 		</snapshotRepository>
 		<repository>
-			<!-- <id>ossrh</id> -->
 			<id>nexus-releases</id>
 			<name>Nexus Release Repository</name>
 			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
@@ -112,6 +116,24 @@
 				<configuration>
 					<source>${version.jdk}</source>
 					<target>${version.jdk}</target>
+				</configuration>
+			</plugin>
+			
+			<!-- Just for add Manifest entries -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>${version.maven-jar-plugin}</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+						<manifestEntries>
+							<Built-By>${user.name}</Built-By>
+						</manifestEntries>
+					</archive>
 				</configuration>
 			</plugin>
 
@@ -172,35 +194,86 @@
 				<configuration>
 					<generateSitemap>true</generateSitemap>
 				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.doxia</groupId>
+						<artifactId>doxia-module-markdown</artifactId>
+						<version>1.6</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 
-			<!-- Release - To perform a release deployment to OSSRH: "mvn release:clean 
-				release:prepare" by answering the prompts for versions and tags, followed 
-				by "mvn release:perform" -->
+			<!-- Release - To perform a release deployment to OSSRH and GitHub: "mvn 
+				release:clean release:prepare" by answering the prompts for versions and 
+				tags, followed by "mvn release:perform" -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
 				<version>${version.maven-release-plugin}</version>
 				<configuration>
 					<tagNameFormat>v@{project.version}</tagNameFormat>
-					<autoVersionSubmodules>true</autoVersionSubmodules>
 					<useReleaseProfile>false</useReleaseProfile>
-					<releaseProfiles>sign-artifacts,generate-sources-and-javadocs</releaseProfiles>
-					<goals>deploy</goals>
+					<releaseProfiles>generate-sources-and-javadocs,sign-artifacts</releaseProfiles>
+					<goals>deploy site-deploy</goals>
 				</configuration>
 			</plugin>
+
+			<!-- Sonatype Nexus configuration of release -->
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>
 				<artifactId>nexus-staging-maven-plugin</artifactId>
 				<version>${version.nexus-staging-maven-plugin}</version>
 				<extensions>true</extensions>
 				<configuration>
+					<serverId>ossrh</serverId>
 					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
 					<!-- With the property autoReleaseAfterClose set to false you can manually 
 						inspect the staging repository in Nexus and trigger a release of the staging 
 						repository later with "mvn nexus-staging:release" -->
 					<autoReleaseAfterClose>false</autoReleaseAfterClose>
 				</configuration>
+			</plugin>
+
+			<!-- Upload release to GitHub -->
+			<plugin>
+				<groupId>com.github.github</groupId>
+				<artifactId>downloads-maven-plugin</artifactId>
+				<version>${version.downloads-maven-plugin}</version>
+				<configuration>
+					<server>github.com</server>
+					<description>${project.version} release of ${project.name}</description>
+					<override>true</override>
+					<includeAttached>true</includeAttached>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>deploy</phase>
+						<goals>
+							<goal>upload</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Publish site to GitHub pages -->
+			<plugin>
+				<groupId>com.github.github</groupId>
+				<artifactId>site-maven-plugin</artifactId>
+				<version>${version.site-maven-plugin}</version>
+				<configuration>
+					<server>github.com</server>
+					<description>Official ${project.name} build of the
+						${project.version} release</description>
+					<message>Building site for ${project.version}</message>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>site-deploy</phase>
+						<goals>
+							<goal>site</goal> <!-- site goal uploads to ghpages -->
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 
 		</plugins>
@@ -293,11 +366,11 @@
 						<reports>
 							<report>index</report>
 							<report>summary</report>
-							<report>dependency-info</report>
 							<report>project-team</report>
 							<report>scm</report>
 							<report>issue-tracking</report>
 							<report>mailing-list</report>
+							<report>dependency-info</report>
 							<report>dependency-management</report>
 							<report>dependencies</report>
 							<report>dependency-convergence</report>
@@ -315,54 +388,15 @@
 
 	<profiles>
 
-		<!-- Publish site to GitHub pages -->
-		<profile>
-			<id>site-on-github-pages</id>
-			<activation>
-				<property>
-					<name>performRelease</name>
-					<value>true</value>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>com.github.github</groupId>
-						<artifactId>site-maven-plugin</artifactId>
-						<version>0.11</version>
-						<configuration>
-							<description>Official ${project.name} build of the
-								${project.version} release</description>
-							<message>Building site for ${project.version}</message>
-						</configuration>
-						<executions>
-							<execution>
-								<phase>site</phase>
-								<goals>
-									<goal>site</goal> <!-- site goal uploads to ghpages -->
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-
 		<!-- Sign atrifact -->
 		<profile>
 			<id>sign-artifacts</id>
-			<activation>
-				<property>
-					<name>performRelease</name>
-					<value>true</value>
-				</property>
-			</activation>
 			<build>
 				<plugins>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.6</version>
+						<version>${version.maven-gpg-plugin}</version>
 						<executions>
 							<execution>
 								<id>sign-artifacts</id>
@@ -380,18 +414,12 @@
 		<!-- Profile for generating sources and javadocs -->
 		<profile>
 			<id>generate-sources-and-javadocs</id>
-			<activation>
-				<property>
-					<name>performRelease</name>
-					<value>true</value>
-				</property>
-			</activation>
 			<build>
 				<plugins>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
-						<version>2.10.3</version>
+						<version>${version.maven-javadoc-plugin}</version>
 						<executions>
 							<execution>
 								<id>attach-javadocs</id>
@@ -404,7 +432,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-source-plugin</artifactId>
-						<version>2.4</version>
+						<version>${version.maven-source-plugin}</version>
 						<executions>
 							<execution>
 								<id>attach-sources</id>
