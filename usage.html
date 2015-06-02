@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="Date-Revision-yyyymmdd" content="20150602" />
     <meta http-equiv="Content-Language" content="en" />
-    <title>Spring Web Flow OptForRepl &#x2013; Issue Tracking</title>
+    <title>Spring Web Flow OptForRepl &#x2013; Usage</title>
     <link rel="stylesheet" href="./css/apache-maven-fluido-1.4.min.css" />
     <link rel="stylesheet" href="./css/site.css" />
     <link rel="stylesheet" href="./css/print.css" media="print" />
@@ -64,83 +64,18 @@
         Introduction</a>
             </li>
                 
-      <li>
+      <li class="active">
   
-                          <a href="usage.html" title="Usage">
-          <span class="none"></span>
-        Usage</a>
-            </li>
+            <a href="#"><span class="none"></span>Usage</a>
+          </li>
                               <li class="nav-header">Maven documentation</li>
-                                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                
       <li>
   
                           <a href="project-info.html" title="Project Information">
-          <span class="icon-chevron-down"></span>
+          <span class="icon-chevron-right"></span>
         Project Information</a>
-                    <ul class="nav nav-list">
-                    
-      <li>
-  
-                          <a href="index.html" title="About">
-          <span class="none"></span>
-        About</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="project-summary.html" title="Project Summary">
-          <span class="none"></span>
-        Project Summary</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="team-list.html" title="Project Team">
-          <span class="none"></span>
-        Project Team</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="source-repository.html" title="Source Repository">
-          <span class="none"></span>
-        Source Repository</a>
-            </li>
-                    
-      <li class="active">
-  
-            <a href="#"><span class="none"></span>Issue Tracking</a>
-          </li>
-                    
-      <li>
-  
-                          <a href="dependency-info.html" title="Dependency Information">
-          <span class="none"></span>
-        Dependency Information</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="dependencies.html" title="Dependencies">
-          <span class="none"></span>
-        Dependencies</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="dependency-convergence.html" title="Dependency Convergence">
-          <span class="none"></span>
-        Dependency Convergence</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="license.html" title="Project License">
-          <span class="none"></span>
-        Project License</a>
-            </li>
-              </ul>
-        </li>
+                  </li>
                                                                                                                         
       <li>
   
@@ -178,12 +113,38 @@
         <div id="bodyColumn"  class="span10" >
                                   
             <div class="section">
-<h2><a name="Overview"></a>Overview</h2><a name="Overview"></a>
-<p>This project uses GitHub Issues Manager to manage its issues.</p></div>
+<h2><a name="Usage"></a>Usage</h2>
+<p>Add the following snippet to your <i>pom</i> file:</p>
+
+<div class="source">
+<div class="source"><pre class="prettyprint">&lt;dependency&gt;
+  &lt;groupId&gt;com.github.gfernandez598&lt;/groupId&gt;
+  &lt;artifactId&gt;springwebflow-optforrepl&lt;/artifactId&gt;
+  &lt;version&gt;1.0&lt;/version&gt;
+&lt;/dependency&gt;
+</pre></div></div></div>
 <div class="section">
-<h2><a name="Issue_Tracking"></a>Issue Tracking</h2><a name="Issue_Tracking"></a>
-<p>Issues, bugs, and feature requests should be submitted to the following issue tracking system for this project.</p>
-<div class="source"><pre class="prettyprint"><a class="externalLink" href="https://github.com/gfernandez598/springwebflow-optforrepl/issues">https://github.com/gfernandez598/springwebflow-optforrepl/issues</a></pre></div></div>
+<h2><a name="Basic_configuration"></a>Basic configuration</h2>
+<p>Configure SWF, define custom conversation manager and set it to the Flow Execution Repository.</p>
+
+<div class="source">
+<div class="source"><pre class="prettyprint">&lt;bean id=&quot;replicationConversationManager&quot; class=&quot;com.github.gfernandez598.swf.conversation.optforrepl.ReplicationOptimizedSessionBindingConversationManager&quot; /&gt;
+
+&lt;flow-executor id=&quot;flowExecutor&quot;&gt;
+  &lt;flow-execution-repository conversation-manager=&quot;replicationConversationManager&quot; /&gt;
+&lt;/flow-executor&gt;
+</pre></div></div></div>
+<div class="section">
+<h2><a name="Extended"></a>Extended</h2>
+<p>The solution provides conversation Id generators <tt>RandomUUIDUidGenerator</tt> (default) and <tt>SequenceUidGenerator</tt>, but can choose any other. Custom generators must implements the <tt>UidGenerator</tt> interface. Continuing the example, can be set it:</p>
+
+<div class="source">
+<div class="source"><pre class="prettyprint">&lt;bean id=&quot;prettyConversationIdGenerator&quot; class=&quot;com.github.gfernandez598.swf.util.SequenceUidGenerator&quot; /&gt;
+
+&lt;bean id=&quot;replicationConversationManager&quot; class=&quot;com.github.gfernandez598.swf.conversation.optforrepl.ReplicationOptimizedSessionBindingConversationManager&quot;&gt;
+  &lt;property name=&quot;conversationIdGenerator&quot; ref=&quot;prettyConversationIdGenerator&quot; /&gt;
+&lt;/bean&gt;
+</pre></div></div></div>
                   </div>
             </div>
           </div>
