@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.gfernandez598</groupId>
 	<artifactId>springwebflow-optforrepl</artifactId>
-	<version>1.0</version>
+	<version>1.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>Spring Web Flow OptForRepl</name>
@@ -67,7 +67,7 @@
 		<url>https://github.com/gfernandez598/springwebflow-optforrepl</url>
 		<connection>scm:git:https://github.com/gfernandez598/springwebflow-optforrepl.git</connection>
 		<developerConnection>scm:git:https://github.com/gfernandez598/springwebflow-optforrepl.git</developerConnection>
-	  <tag>v1.0</tag>
+	  <tag>HEAD</tag>
   </scm>
 
 	<issueManagement>
