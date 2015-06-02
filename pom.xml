@@ -66,8 +66,8 @@
 
 	<scm>
 		<url>https://github.com/gfernandez598/springwebflow-optforrepl</url>
-		<connection>scm:git:git@github.com:gfernandez598/springwebflow-optforrepl.git</connection>
-		<developerConnection>scm:git:git@github.com:gfernandez598/springwebflow-optforrepl.git</developerConnection>
+		<connection>scm:git:https://github.com/gfernandez598/springwebflow-optforrepl.git</connection>
+		<developerConnection>scm:git:https://github.com/gfernandez598/springwebflow-optforrepl.git</developerConnection>
 	</scm>
 
 	<issueManagement>
