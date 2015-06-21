@@ -63,7 +63,7 @@ Add dependency to the project
 <dependency>
   <groupId>com.github.gfernandez598</groupId>
   <artifactId>springwebflow-optforrepl</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.1-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -101,6 +101,10 @@ example, can be set it:
 - Jboss AS 7.1.3.Final
 
 ## Extra info
+
+### Samples
+
+Take a look at [springwebflow-optforrepl-samples](https://github.com/gfernandez598/springwebflow-optforrepl-samples).
 
 ### Take care about
 

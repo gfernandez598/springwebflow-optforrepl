@@ -40,3 +40,8 @@ example, can be set it:
   <property name="conversationIdGenerator" ref="prettyConversationIdGenerator" />
 </bean>
 ```
+
+Samples
+-------
+
+Take a look at [springwebflow-optforrepl-samples](https://github.com/gfernandez598/springwebflow-optforrepl-samples).
